@@ -1,0 +1,92 @@
+0001   0000             ;Considerando que el sistema solo tiene memoria EEPROM(segmento para código),escribir un
+0002   0000             ;algoritmo (programa)en lenguaje ensambladorque calcule la raíz cuadrada de un número
+0003   0000             ;entero, sin signo, de 8 bits.El número, del que se obtendrá su raíz cuadrada debe ser
+0004   0000             ;dado en BCD (decimal),en el registro B;de tal maneraque podremos obtener la raíz cuadrada
+0005   0000             ;de números en el rango de 010 a 9910, dados en decimal. EL resultado (solo la parte
+0006   0000             ;entera), debe ser depositado (en decimal) en el registro C.
+0007   0000             
+0008   0000             	.org 0000
+0009   0000 06 09       	ld b, 9 ;numero del que se obtendra la raiz
+0010   0002 78          	ld a, b
+0011   0003 FE 00       	cp 0	;si b es 0 la raiz es cero
+0012   0005 CA 3F 00    	jp z, numcero_o_uno
+0013   0008 FE 01       	cp 1	;si b es 1 la raiz es 1
+0014   000A CA 3F 00    	jp z, numcero_o_uno
+0015   000D 26 0A       	ld h, 10 ;limite superior (la raiz de 99 no es mayor a 10)
+0016   000F 2E 01       	ld l, 1  ;limite inferior
+0017   0011             
+0018   0011             obtencion_numero:
+0019   0011 7C          	ld a, h
+0020   0012 BD          	cp l
+0021   0013 DA 41 00    	jp c, end3
+0022   0016 7D          	ld a, l
+0023   0017 84          	add a, h
+0024   0018 CB 3F       	srl a    ;resultado
+0025   001A             
+0026   001A             ;inicio del contador
+0027   001A             
+0028   001A 1E 01       	ld e, 1
+0029   001C 57          	ld d, a
+0030   001D 4F          	ld c, a
+0031   001E             
+0032   001E             calcular_cuadrado:
+0033   001E             
+0034   001E 79          	ld a, c
+0035   001F 82          	add a, d ;elevando el numero al cuadrado mediante sumas
+0036   0020 1C          	inc e
+0037   0021 4F          	ld c, a
+0038   0022 7A          	ld a, d
+0039   0023 BB          	cp e
+0040   0024 CA 2A 00    	jp z, comparacion
+0041   0027 C3 1E 00    	jp calcular_cuadrado
+0042   002A             
+0043   002A             comparacion:
+0044   002A             
+0045   002A 79          	ld a, c
+0046   002B B8          	cp b	;comparando si el numero al cuadrado es igual al numero ingresado
+0047   002C CA 45 00    	jp z, end2
+0048   002F D2 3A 00    	jp nc, mayor
+0049   0032 DA 35 00    	jp c, menor
+0050   0035             
+0051   0035             menor:
+0052   0035 6A          	ld l, d
+0053   0036 2C          	inc l	;incremento del limite inferior
+0054   0037 C3 11 00    	jp obtencion_numero
+0055   003A             
+0056   003A             mayor:
+0057   003A 62          	ld h, d
+0058   003B 25          	dec h	;decremento del limite superior
+0059   003C C3 11 00    	jp obtencion_numero
+0060   003F             
+0061   003F             numcero_o_uno:
+0062   003F 4F          	ld c, a
+0063   0040 76          	halt
+0064   0041             	end
+0065   0041             end3:
+0066   0041 4C          	ld c, h
+0067   0042 C3 49 00    	jp bcd
+0068   0045             end2:
+0069   0045 4A          	ld c, d
+0070   0046 C3 49 00    	jp bcd
+0071   0049             
+0072   0049             bcd:
+0073   0049 78          	ld a,b
+0074   004A 2E 00       	ld l,0
+0075   004C             
+0076   004C             encontrar_hexa:
+0077   004C FE 0A       	cp 10
+0078   004E 38 05       	jr c, decimal
+0079   0050 D6 0A       	sub 10
+0080   0052 2C          	inc l
+0081   0053 18 F7       	jr encontrar_hexa
+0082   0055             decimal:
+0083   0055 CB 25       	sla l
+0084   0057 CB 25       	sla l
+0085   0059 CB 25       	sla l
+0086   005B CB 25       	sla l
+0087   005D B5          	or l
+0088   005E 47          	ld b,a
+0089   005F             
+0090   005F 76          	halt
+0091   0060             	.end
+Number of errors = 0
