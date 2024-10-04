@@ -1,0 +1,217 @@
+0001   0000             ;Programa que genera 20 numeros random y ordena de forma ascendente o descendente
+0002   0000             ;dependiendo de lo que se elija y al terminar, se puede repetir el programa o
+0003   0000             ;terminar, se muestran los mensajes de eleccion, los numeros generados y los
+0004   0000             ;numeros ordenados en un LCD
+0005   0000             
+0006   0000             ;-------------------------------
+0007   0000             ;main
+0008   0000             ;-------------------------------
+0009   0000             	.org 0000h
+0010   0000 31 FF 27    	ld sp, 27ffh	;stack
+0011   0003 3E 89       	ld a, 89h	;definiendo los puertos: A=In, B=In y C=Out
+0012   0005 D3 03       	out (cw), a
+0013   0007 21 1E 20    	ld hl, texto		;coloca el texto de la variable texto
+0014   000A CD 5F 00    	call colocar_texto
+0015   000D 06 14       	ld b, 20		;contador (numero de numeros a generar)
+0016   000F 21 00 20    	ld hl, numero
+0017   0012 CD 6C 00    	call rand8_LCG		;subrutina que genera los numeros
+0018   0015 21 00 20    	ld hl, numero
+0019   0018 CD 5F 00    	call colocar_texto	;Coloca el numero generado en la pantalla
+0020   001B 16 14       	ld d, 20
+0021   001D 21 00 20    	ld hl, numero
+0022   0020 22 16 20    	ld (direccion), hl
+0023   0023 CD 95 00    	call ordenar		;ordena los numeros en orden ascendente
+0024   0026 21 2E 20    	ld hl, texto2		;apunta a la direccion de la variable texto2
+0025   0029 CD 5F 00    	call colocar_texto	;coloca el texto de la variable texto2
+0026   002C 21 3E 20    	ld hl, texto3
+0027   002F CD 5F 00    	call colocar_texto	;coloca el texto de la variable texto3
+0028   0032 21 4E 20    	ld hl, texto4
+0029   0035 CD 5F 00    	call colocar_texto	;coloca el texto de la variable texto4
+0030   0038 16 14       	ld d, 20		;conttador
+0031   003A 21 00 20    	ld hl, numero
+0032   003D 22 16 20    	ld (direccion), hl
+0033   0040 CD B7 00    	call opciones		;seleccion de ascendente o descendente
+0034   0043 21 5E 20    	ld hl, texto5
+0035   0046 CD 5F 00    	call colocar_texto	;coloca el texto de la variable texto5
+0036   0049 21 69 20    	ld hl, texto6
+0037   004C CD 5F 00    	call colocar_texto	;coloca el texto de la variable texto6
+0038   004F 21 71 20    	ld hl, texto7
+0039   0052 CD 5F 00    	call colocar_texto	;coloca el texto de la variable texto7
+0040   0055 CD EB 00    	call repetir		;se decide si se repite el programa o no
+0041   0058 21 79 20    	ld hl, texto8
+0042   005B CD 5F 00    	call colocar_texto	;coloca el texto de la variable texto8
+0043   005E 76          	halt
+0044   005F             	.end
+0045   005F             
+0046   005F             
+0047   005F             
+0048   005F             ;-----------------------------
+0049   005F             ;Subrutinas
+0050   005F             ;-----------------------------
+0051   005F             colocar_texto:
+0052   005F 7E          	ld a, (hl)
+0053   0060 FE 26       	cp '&'		;cuando en el texto hay un & termina
+0054   0062 CA 6B 00    	jp z, end2
+0055   0065 D3 00       	out (lcd), a	;coloca lo que hay en a en el lcd
+0056   0067 23          	inc hl		;dirige a la siguiente posicion de memoria
+0057   0068 C3 5F 00    	jp colocar_texto
+0058   006B             
+0059   006B             end2:
+0060   006B C9          	ret
+0061   006C             
+0062   006C             rand8_LCG:		;genera los numeros ramdom
+0063   006C ED 5F              	ld a, r
+0064   006E 4F                 	ld c,a
+0065   006F 87                 	add a,a
+0066   0070 81                 	add a,c
+0067   0071 87                 	add a,a
+0068   0072 87                 	add a,a
+0069   0073 81                 	add a,c
+0070   0074 C6 52              	add a,82
+0071   0076 CB 3F       	srl a		;Solo se queda con los ultimos 4 bits
+0072   0078 CB 3F       	srl a
+0073   007A CB 3F       	srl a
+0074   007C CB 3F       	srl a
+0075   007E C6 30       	add a, 30h	;Suma 30 para convertir a ASCII
+0076   0080 FE 3A       	cp 3Ah		;Compara si se supera el 39H (el 9 el ascii)
+0077   0082 D2 8C 00    	jp nc, ajustar
+0078   0085 23          	inc hl
+0079   0086 77                 	ld (hl),a	;Carga el valor a la direccion que apunta hl
+0080   0087 05          	dec b
+0081   0088 C2 6C 00    	jp nz, rand8_LCG ;Si aun no se colocan los 20 numeros se repite
+0082   008B             
+0083   008B C9          	ret
+0084   008C             ajustar:
+0085   008C D6 06       	sub 6h		;Como hay 4 bits el numero maximo es 3F (15+30H) por lo que resto 6 para colocar en el rango (30H-39H)
+0086   008E 23          	inc hl
+0087   008F 77                 	ld (hl),a	;Carga el valor a la direccion que apunta hl
+0088   0090 05          	dec b
+0089   0091 C2 6C 00    	jp nz, rand8_LCG	;Si aun no se colocan los 20 numeros se repite
+0090   0094             
+0091   0094             
+0092   0094 C9                 	ret
+0093   0095             
+0094   0095             
+0095   0095             ordenar:
+0096   0095 2A 16 20    	ld hl, (direccion)	;Apunto a la direccion donde se guardaran los numeros
+0097   0098 1E 14       	ld e, 20		;contador
+0098   009A             
+0099   009A             ascendente:
+0100   009A 7E          	ld a, (hl)		;carga en a lo que hay en la dirreccion a la que apunta hl
+0101   009B 23          	inc hl			;pasamos a la siguinte direccion de memoria
+0102   009C 46          	ld b, (hl)		;carga en b lo que hay en la direccion a la que apunta hl
+0103   009D 1D          	dec e			;reduce el contador
+0104   009E CA AF 00    	jp z, reinicio
+0105   00A1 B8          	cp b			;compara a con b
+0106   00A2 D2 A8 00    	jp nc, intercambio	;si a es mayor a b va a intercambio
+0107   00A5 C3 9A 00    	jp ascendente		;si el contador no ha llegado a cero se repite
+0108   00A8             
+0109   00A8             intercambio:		;intercambia valores en las posiciones de memoria
+0110   00A8 77          	ld (hl), a
+0111   00A9 2B          	dec hl
+0112   00AA 70          	ld (hl), b
+0113   00AB 23          	inc hl
+0114   00AC C3 9A 00    	jp ascendente
+0115   00AF             
+0116   00AF             reinicio:		;Apunta al inicio para volver a comparar
+0117   00AF 15          	dec d
+0118   00B0 CA B6 00    	jp z, end3
+0119   00B3 C3 95 00    	jp ordenar
+0120   00B6             
+0121   00B6 C9          end3: ret
+0122   00B7             
+0123   00B7             opciones:
+0124   00B7 DB 02       	in a, (teclado)	;coloca en a lo ingresado por el teclado
+0125   00B9 FE 41       	cp 41h		;Compara si lo ingresado en a es un A
+0126   00BB CA C6 00    	jp z, mostrar_as
+0127   00BE FE 44       	cp 44h		;compara si lo ingresado en a es una B
+0128   00C0 CA D5 00    	jp z, mostrar_des
+0129   00C3 C3 B7 00    	jp opciones	;si no es ninguna de las opciones anteriores se repite
+0130   00C6             
+0131   00C6             mostrar_as:
+0132   00C6 2A 16 20    	ld hl, (direccion)	;apunta a la primera direccion donde esta guardado el numero
+0133   00C9             loop
+0134   00C9 7E          	ld a, (hl)		;carga en a lo que hay en la direccion a la que apunta hl
+0135   00CA D3 00       	out (lcd), a		;muestra el valor de a en el LCD
+0136   00CC 23          	inc hl			;pasa a la siguiente direccion
+0137   00CD 15          	dec d			;decrementa el contador
+0138   00CE CA D4 00    	jp z, end4		;si el contador llega a cero va a end4
+0139   00D1 C3 C9 00    	jp loop
+0140   00D4             end4:
+0141   00D4 C9          	ret
+0142   00D5             
+0143   00D5             mostrar_des:
+0144   00D5 2A 16 20    	ld hl, (direccion)	;apunta a la primera direccion donde esta guardado el numero
+0145   00D8 1E 13       	ld e, 19		;contador
+0146   00DA             final:				;coloca el apuntador a la ultima posicion (donde esta el ultimo numero)
+0147   00DA 23          	inc hl
+0148   00DB 1D          	dec e
+0149   00DC C2 DA 00    	jp nz, final
+0150   00DF             
+0151   00DF             loop2
+0152   00DF 7E          	ld a, (hl)		;carga en a lo que hay en la direccion a la que apunta hl
+0153   00E0 D3 00       	out (lcd), a		;muestra el valor de a en el LCD
+0154   00E2 2B          	dec hl			;pasa a la posicion anterior de memoria
+0155   00E3 15          	dec d			;decrementa el contador
+0156   00E4 CA EA 00    	jp z, end5		;si el contador es cero se direge a end5
+0157   00E7 C3 DF 00    	jp loop2
+0158   00EA             end5:
+0159   00EA C9          	ret
+0160   00EB             
+0161   00EB             repetir:
+0162   00EB DB 02       	in a, (teclado)		;Coloca en a lo ingresado en el teclado
+0163   00ED FE 53       	cp 53h			;compra si es una S
+0164   00EF CA FA 00    	jp z, final2
+0165   00F2 FE 4E       	cp 4eh			;compara si es una N
+0166   00F4 CA FD 00    	jp z, final3
+0167   00F7 C3 EB 00    	jp repetir
+0168   00FA             
+0169   00FA             
+0170   00FA             final2:
+0171   00FA C3 00 00    	jp 0000h		;Comienza de nuevo el programa
+0172   00FD             final3:
+0173   00FD C9          	ret
+0174   00FE             ;-----------------------------
+0175   00FE             ;datos
+0176   00FE             ;-----------------------------
+0177   00FE              	.org 2000h
+0178   2000 31 20 20 20 numero	.db "1         "
+0178   2004 20 20 20 20 
+0178   2008 20 20       
+0179   200A 20 20 20 20 numero2	.db "           &"
+0179   200E 20 20 20 20 
+0179   2012 20 20 20 26 
+0180   2016 20 20 20 20 direccion .db "        "
+0180   201A 20 20 20 20 
+0181   201E 4E 75 6D 2E texto	.db "Num. Generando:&"
+0181   2022 20 47 65 6E 
+0181   2026 65 72 61 6E 
+0181   202A 64 6F 3A 26 
+0182   202E             cw	.equ 03h
+0183   202E             lcd	.equ 00h
+0184   202E             teclado	.equ 02h
+0185   202E 20 43 6F 6D texto2	.db " Como ordenar? &"
+0185   2032 6F 20 6F 72 
+0185   2036 64 65 6E 61 
+0185   203A 72 3F 20 26 
+0186   203E 20 28 41 29 texto3	.db " (A)Ascendente &"
+0186   2042 41 73 63 65 
+0186   2046 6E 64 65 6E 
+0186   204A 74 65 20 26 
+0187   204E 28 44 29 44 texto4	.db "(D)Descendente &"
+0187   2052 65 73 63 65 
+0187   2056 6E 64 65 6E 
+0187   205A 74 65 20 26 
+0188   205E 20 52 65 70 texto5 	.db " Repetir? &"
+0188   2062 65 74 69 72 
+0188   2066 3F 20 26    
+0189   2069 20 28 53 29 texto6	.db " (S)Si &"
+0189   206D 53 69 20 26 
+0190   2071 20 28 4E 29 texto7	.db " (N)No &"
+0190   2075 4E 6F 20 26 
+0191   2079 20 54 65 72 texto8	.db " Terminado &"
+0191   207D 6D 69 6E 61 
+0191   2081 64 6F 20 26 
+0192   2085             
+0193   2085             
+Number of errors = 0
